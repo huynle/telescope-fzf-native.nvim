@@ -1,4 +1,4 @@
-CFLAGS = -Wall -Werror -fpic
+CFLAGS = -Wall -Werror -Ofast -fpic
 COVERAGE ?=
 
 ifeq ($(OS),Windows_NT)
@@ -14,9 +14,9 @@ endif
 
 all: build/$(TARGET)
 
-build/$(TARGET): src/fzf.c src/fzf.h
+build/$(TARGET): src/fzf.c src/fzf.h src/bare.c
 	$(MKD) build
-	$(CC) -O3 $(CFLAGS) -shared src/fzf.c -o build/$(TARGET)
+	$(CC) $(CFLAGS) -shared -o build/$(TARGET) src/fzf.c src/bare.c -I/usr/include/luajit-2.1
 
 build/test: build/$(TARGET) test/test.c
 	$(CC) -Og -ggdb3 $(CFLAGS) $(COVERAGE) test/test.c -o build/test -I./src -L./build -lfzf -lexaminer
