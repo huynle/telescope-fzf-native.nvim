@@ -80,7 +80,7 @@ static int32_t index_byte(fzf_string_t *string, char b) {
 static size_t leading_whitespaces(fzf_string_t *str) {
   size_t whitespaces = 0;
   for (size_t i = 0; i < str->size; i++) {
-    if (!isspace(str->data[i])) {
+    if (!isspace((unsigned char)str->data[i])) {
       break;
     }
     whitespaces++;
@@ -91,7 +91,7 @@ static size_t leading_whitespaces(fzf_string_t *str) {
 static size_t trailing_whitespaces(fzf_string_t *str) {
   size_t whitespaces = 0;
   for (size_t i = str->size - 1; i >= 0; i--) {
-    if (!isspace(str->data[i])) {
+    if (!isspace((unsigned char)str->data[i])) {
       break;
     }
     whitespaces++;
@@ -607,7 +607,7 @@ static fzf_result_t __fuzzy_match_v2(bool case_sensitive, bool normalize,
         H0sub.data[off] = max16(prevH0 + score_gap_start, 0);
       }
       C0sub.data[off] = 0;
-      in_gap = false;
+      in_gap = true;
     }
     prevH0 = H0sub.data[off];
   }
@@ -713,9 +713,9 @@ static fzf_result_t __fuzzy_match_v2(bool case_sensitive, bool normalize,
   }
 
   fzf_position_t *pos = pos_array(with_pos, M);
+  size_t j = max_score_pos;
   if (with_pos) {
     size_t i = M - 1;
-    size_t j = max_score_pos;
     bool prefer_match = true;
     for (;;) {
       size_t I = i * width;
@@ -751,7 +751,7 @@ static fzf_result_t __fuzzy_match_v2(bool case_sensitive, bool normalize,
   free_alloc(B);
   free_alloc(C0);
   free_alloc(H0);
-  return (fzf_result_t){(int32_t)f0, (int32_t)max_score_pos + 1,
+  return (fzf_result_t){(int32_t)j, (int32_t)max_score_pos + 1,
                         (int32_t)max_score, pos};
 }
 
@@ -849,7 +849,7 @@ static fzf_result_t __prefix_match(bool case_sensitive, bool normalize,
   }
   size_t trimmed_len = 0;
   /* TODO(conni2461): i feel this is wrong */
-  if (!isspace(pattern->data[0])) {
+  if (!isspace((unsigned char)pattern->data[0])) {
     trimmed_len = leading_whitespaces(text);
   }
   if (text->size - trimmed_len < len_pattern) {
@@ -891,7 +891,8 @@ static fzf_result_t __suffix_match(bool case_sensitive, bool normalize,
   size_t trimmed_len = len_runes;
   const size_t len_pattern = pattern->size;
   /* TODO(conni2461): i feel this is wrong */
-  if (len_pattern == 0 || !isspace(pattern->data[len_pattern - 1])) {
+  if (len_pattern == 0 ||
+      !isspace((unsigned char)pattern->data[len_pattern - 1])) {
     trimmed_len -= trailing_whitespaces(text);
   }
   if (len_pattern == 0) {
